@@ -1,83 +1,98 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, SafeAreaView, View, FlatList, TouchableOpacity, Button } from 'react-native';
+import { Image, StyleSheet, Text, SafeAreaView, View, FlatList, TouchableOpacity, Button } from 'react-native';
 import Constants from 'expo-constants';
 
-const DATA = [
-  {
-    id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba',
-    name: 'First Item',
-    author: 'Nervillo',
-  },
-  {
-    id: '3ac68afc-c605-48d3-a4f8-fbd91aa97f63',
-    name: 'Second Item',
-    author: 'Malina',
-  },
-  {
-    id: '58694a0f-3da1-471f-bd96-145571e29d72',
-    name: 'Third Item',
-    author: 'Artem',
-  },
-  
-];
-
-function Item({ name, author }) {
-  return (
-    <View style={styles.container}>
-    	<View style={styles.name}>
-      		<Text>{name}</Text>
-     	</View>
-     	<View style={styles.author}>
-    		<Text>{author}</Text>
-    	</View>
-      <Button
-        title="Go to Details"
-        onPress={() => this.props.navigation.navigate('Photo')} 
-      />
-    </View>
-  );
-}
-
-
 export default class HomeScreen extends Component {
-   render() {
-    
+	constructor(props) {
+	 super(props);
+	 this.state = {
+	   loading: true,
+	   photos:[]
+	  };
+	}
+
+componentDidMount(){
+  const { navigation } = this.props;
+	fetch("https://api.unsplash.com/photos/?client_id=896d4f52c589547b2134bd75ed48742db637fa51810b49b607e37e46ab2c0043")
+	.then(response => response.json())
+	.then((responseJson)=> {
+	  this.setState({
+	   loading: false,
+	   photos: responseJson
+	  })
+	})
+	.catch(error=>console.log(error))
+}    
+render() {
+  
     return (
     	<SafeAreaView>
-    	     <FlatList
-    	       data={DATA}
-    	       renderItem={({ item }) => <Item name={item.name} author={item.author} />}
-    	       keyExtractor={item => item.id}
-    	     />
+    	    <FlatList
+    	    	data={this.state.photos}
+    	    	renderItem={({ item }) => 
+    	    	    <View style={styles.container}>
+	    	    	    <TouchableOpacity onPress={() => this.props.navigation.navigate('Photo', {title: item.user.name, desc: item.alt_description, url: item.urls.full})}>
+	    	    	    	<Image
+	    	    		        style={styles.tinyLogo}
+	    	    		        source={{
+	    	    		          uri: item.urls.small,
+	    	    		        }}
+	    	    	      	/>
+						</TouchableOpacity>    	    	      	
+    	    	 
+    	    	      	<View style={styles.wrapper}>
+    	    		     	<View style={styles.content}>
+    	    		     		<Text style={styles.header}>Author:</Text>
+    	    		     		<Text numberOfLines={1} style={styles.text}>{item.user.name}</Text>
+    	    		    	</View>
+    	    		    	<View style={styles.content}>
+    	    		     		<Text style={styles.header}>Description:</Text>
+    	    		     		<Text numberOfLines={1} style={styles.text}>{item.alt_description}</Text>
+    	    		     	</View>
+    	    		    </View>
+    	    	    </View>}
+    	    	keyExtractor={item=>item.id.toString()}
+    	    />
     	</SafeAreaView>
-	);
+	  );
   }
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create({	
   container: {
-    padding: 15,
-    paddingLeft: 10,
-    paddingRight: 10,
-    margin: 2,
-    borderWidth: 0.5,
-    borderColor: 'grey',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: 'teal',
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: 'white',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
   },
-
-  name: {
-  	height: 'auto',
-  	width: 100,
-
+  wrapper: {
+  	flex: 1,
+    flexDirection: 'column',
   },
-
-  author: {
-  	height: 'auto',
-  	width: 100,
-
+  content: {
+   	flexDirection: 'row',
+    height: 'auto',
+    width: 'auto',
+ },
+  tinyLogo: {
+  	marginRight: 5,
+    width: 60,
+    height: 60,
+    resizeMode: 'cover'
+  },
+  header: {
+  	fontSize: 16,
+  	fontWeight: 'bold',
+  	marginRight: 8,
+  	color: 'dimgray',
+  	marginBottom: 5,
+  },
+  text: {
+  	fontSize: 16,
+  	marginRight: 8,
+  	flex: 1,
+  	color: 'lightslategrey',
   }
 });
